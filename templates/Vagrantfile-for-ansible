@@ -1,0 +1,28 @@
+Vagrant.configure(2) do |config|
+  config.vm.box = "centos/7"
+#  config.ssh.username = "keepwalking"
+  N = 2
+  VM_PROVIDER = "virtualbox"
+  NET_INTERFACE = "wlp3s0"
+  ANSIBLE_RAW_SSH_ARGS = []
+
+  (1..N-1).each do |machine_id|
+    ANSIBLE_RAW_SSH_ARGS << "-o IdentityFile=/home/keepwalking/ansible/vagrant/machines/machine#{machine_id}/#{VM_PROVIDER}/private_key"
+  end
+
+  (1..N).each do |machine_id|
+    config.vm.define "machine#{machine_id}" do |machine|
+      machine.vm.hostname = "machine#{machine_id}"
+      machine.vm.network "public_network", ip: "192.168.1.11#{machine_id}", bridge: "wlp3s0"
+      if machine_id == N
+        machine.vm.provision "ansible" do |ansible|
+          ansible.playbook = "playbook.yml"
+          ansible.limit = 'all'
+          ansible.inventory_path = "static_inventory"
+          ansible.raw_ssh_args = ANSIBLE_RAW_SSH_ARGS
+        end
+      end
+
+    end
+  end
+end

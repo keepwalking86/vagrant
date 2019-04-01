@@ -1,0 +1,21 @@
+#Vagrantfile for creating VM and running shells
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  config.vm.network "public_network", bridge: "enp2s0", ip: "192.168.10.112"
+  #Provider-specific configuration: virtualbox
+  config.vm.provider "virtualbox" do |vb|
+    # Customize the amount of memory on the VM:
+    vb.memory = "4096"
+    vb.cpus = "2"
+  end
+  #Run Gitlab script
+  $script = <<SCRIPT
+    echo 'Going to download and run Gitlab script...'
+    curl -S -s -L -O https://raw.githubusercontent.com/keepwalking86/CICD-Jenkins-Full/master/scripts/install_gitlab-ce.sh
+    bash install_gitlab-ce.sh
+SCRIPT
+  config.vm.provision "shell", inline: $script
+end
